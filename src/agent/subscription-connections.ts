@@ -1,6 +1,8 @@
 import { chatGPTBackgroundAllowed, chatGPTConnected, chatGPTScopeCurrent, onChatGPTChange } from "./chatgpt-bridge.ts";
 import { nativeSubscriptionId, nativeSubscriptionConnected, nativeSubscriptionBackgroundAllowed, nativeAdmissionCurrent, onNativeSubscriptionChange } from "./subscription-bridge.ts";
 import type { AdmissionScope } from "./subscription-request-cycle.ts";
+import { isClaudeAgentProvider } from "../core/contracts/claude-agent.ts";
+import { claudeAgentBackgroundAllowed } from "./claude-agent/registry.ts";
 
 export function isSubscriptionProvider(provider: string | undefined): boolean { return provider === "chatgpt" || !!(provider && nativeSubscriptionId(provider)); }
 export function subscriptionConnected(provider: string): boolean {
@@ -10,6 +12,7 @@ export function subscriptionConnected(provider: string): boolean {
 /** Ordinary API connections have no subscription background-consent gate. */
 export function connectionBackgroundAllowed(provider: string | undefined): boolean {
 	if (provider === "chatgpt") return chatGPTBackgroundAllowed();
+	if (provider && isClaudeAgentProvider(provider)) return claudeAgentBackgroundAllowed(provider);
 	const native = provider ? nativeSubscriptionId(provider) : undefined;
 	return native ? nativeSubscriptionBackgroundAllowed(native) : true;
 }
